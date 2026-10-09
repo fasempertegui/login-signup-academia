@@ -31,6 +31,12 @@ export default function SignUp({ navigation }) {
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert("Error", "Ingrese un correo válido, por ejemplo: nombre@dominio.com.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       Alert.alert("Error", "Las contraseñas no coinciden.");
       return;

@@ -15,6 +15,12 @@ export default function Login({ navigation }) {
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert("Error", "Ingrese un correo válido, por ejemplo: nombre@dominio.com.");
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
       Alert.alert("Login exitoso", "Has iniciado sesión correctamente.");
