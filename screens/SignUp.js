@@ -59,12 +59,31 @@ export default function SignUp({ navigation }) {
     setIsLoading(true);
     try {
       const credential = await createUserWithEmailAndPassword(auth, email.trim(), password);
-      try {
-        await updateProfile(credential.user, { displayName: `${firstName.trim()} ${lastName.trim()}` });
-        Alert.alert("Registro exitoso", "Usuario registrado con éxito.");
-      } catch (error) {
-        Alert.alert("Cuenta creada", "La cuenta se creó, pero no se pudo guardar el nombre.");
-      }
+      const displayName = `${firstName.trim()} ${lastName.trim()}`;
+      let isSavingName = false;
+
+      // El reintento conserva la cuenta creada y solo vuelve a guardar el nombre.
+      const saveName = async () => {
+        if (isSavingName) return;
+        isSavingName = true;
+        try {
+          await updateProfile(credential.user, { displayName });
+          Alert.alert("Registro exitoso", "Usuario registrado con éxito.");
+        } catch (error) {
+          Alert.alert(
+            "Cuenta creada",
+            "La cuenta se creó, pero no se pudo guardar el nombre.",
+            [
+              { text: "Cerrar", style: "cancel" },
+              { text: "Reintentar", onPress: saveName },
+            ]
+          );
+        } finally {
+          isSavingName = false;
+        }
+      };
+
+      await saveName();
     } catch (error) {
       console.error('Error de registro:', error.code, error.message);
       let errorMessage = "Hubo un problema al registrar el usuario.";
