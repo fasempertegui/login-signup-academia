@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -8,8 +8,12 @@ export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const requestInProgress = useRef(false);
 
   const handleLogin = async () => {
+    if (requestInProgress.current) return;
+
     if (!email.trim() || !password) {
       Alert.alert("Error", "Por favor ingrese ambos campos.");
       return;
@@ -21,6 +25,8 @@ export default function Login({ navigation }) {
       return;
     }
 
+    requestInProgress.current = true;
+    setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
       Alert.alert("Login exitoso", "Has iniciado sesión correctamente.");
@@ -49,6 +55,9 @@ export default function Login({ navigation }) {
           break;
       }
       Alert.alert("Error", `${errorMessage}\n\nCódigo: ${error.code ?? 'desconocido'}`);
+    } finally {
+      requestInProgress.current = false;
+      setIsLoading(false);
     }
   };
 
@@ -85,11 +94,15 @@ export default function Login({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Ingresar</Text>
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={handleLogin}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>{isLoading ? 'Ingresando…' : 'Ingresar'}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+      <TouchableOpacity onPress={() => navigation.navigate('SignUp')} disabled={isLoading}>
         <Text style={styles.signUpText}>¿No tienes cuenta aún? Regístrate</Text>
       </TouchableOpacity>
     </View>
@@ -141,6 +154,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderRadius: 5,
     marginTop: 20,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   buttonText: {
     color: '#fff',

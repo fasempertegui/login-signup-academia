@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { auth } from '../src/config/firebaseConfig';
@@ -12,8 +12,12 @@ export default function SignUp({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const requestInProgress = useRef(false);
 
   const handleSignUp = async () => {
+    if (requestInProgress.current) return;
+
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !password || !confirmPassword) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
       return;
@@ -51,9 +55,16 @@ export default function SignUp({ navigation }) {
       return;
     }
 
-    let credential;
+    requestInProgress.current = true;
+    setIsLoading(true);
     try {
-      credential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const credential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      try {
+        await updateProfile(credential.user, { displayName: `${firstName.trim()} ${lastName.trim()}` });
+        Alert.alert("Registro exitoso", "Usuario registrado con éxito.");
+      } catch (error) {
+        Alert.alert("Cuenta creada", "La cuenta se creó, pero no se pudo guardar el nombre.");
+      }
     } catch (error) {
       console.error('Error de registro:', error.code, error.message);
       let errorMessage = "Hubo un problema al registrar el usuario.";
@@ -75,14 +86,9 @@ export default function SignUp({ navigation }) {
           break;
       }
       Alert.alert("Error", `${errorMessage}\n\nCódigo: ${error.code ?? 'desconocido'}`);
-      return;
-    }
-
-    try {
-      await updateProfile(credential.user, { displayName: `${firstName.trim()} ${lastName.trim()}` });
-      Alert.alert("Registro exitoso", "Usuario registrado con éxito.");
-    } catch (error) {
-      Alert.alert("Cuenta creada", "La cuenta se creó, pero no se pudo guardar el nombre.");
+    } finally {
+      requestInProgress.current = false;
+      setIsLoading(false);
     }
     // Firebase inicia la sesión y el navegador muestra Home.
   };
@@ -157,11 +163,15 @@ export default function SignUp({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Registrarse</Text>
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={handleSignUp}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>{isLoading ? 'Registrando…' : 'Registrarse'}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+      <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={isLoading}>
         <Text style={styles.signUpText}>¿Ya tienes cuenta? Inicia sesión</Text>
       </TouchableOpacity>
     </View>
@@ -213,6 +223,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderRadius: 5,
     marginTop: 10,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   buttonText: {
     color: '#fff',
