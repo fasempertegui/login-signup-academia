@@ -33,6 +33,8 @@ export default function Login({ navigation }) {
           errorMessage = "El formato del correo electrónico no es válido.";
           break;
         case 'auth/invalid-credential':
+          errorMessage = "Correo o contraseña incorrectos.";
+          break;
         case 'auth/wrong-password':
           errorMessage = "La contraseña es incorrecta.";
           break;
