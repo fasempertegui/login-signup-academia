@@ -19,6 +19,18 @@ export default function SignUp({ navigation }) {
       return;
     }
 
+    // Acepta únicamente letras a-z, A-Z, ñ y Ñ.
+    const nameRegex = /^[a-zA-ZñÑ]+$/;
+    if (!nameRegex.test(firstName)) {
+      Alert.alert("Error", "El nombre solo puede contener letras, sin espacios ni símbolos.");
+      return;
+    }
+
+    if (!nameRegex.test(lastName)) {
+      Alert.alert("Error", "El apellido solo puede contener letras, sin espacios ni símbolos.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       Alert.alert("Error", "Las contraseñas no coinciden.");
       return;
