@@ -4,9 +4,11 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { auth } from '../src/config/firebaseConfig';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import useCenteredForm from '../src/hooks/useCenteredForm';
 
 export default function SignUp({ navigation }) {
   const headerHeight = useHeaderHeight();
+  const form = useCenteredForm(headerHeight);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -122,8 +124,11 @@ export default function SignUp({ navigation }) {
       keyboardVerticalOffset={headerHeight}
     >
       <ScrollView
+        ref={form.scrollRef}
         style={styles.screen}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { paddingBottom: 20 + form.bottomSpace }]}
+        onLayout={form.onScrollLayout}
+        onContentSizeChange={form.onContentSizeChange}
         automaticallyAdjustKeyboardInsets={true}
         keyboardShouldPersistTaps="handled"
       >
@@ -131,48 +136,52 @@ export default function SignUp({ navigation }) {
         <Text style={styles.title}>Regístrate</Text>
 
         <Text style={styles.label}>Nombre</Text>
-        <View style={styles.inputContainer}>
+        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('firstName', event)}>
           <FontAwesome name="user" size={20} color="#ccc" style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Ingrese su nombre"
             value={firstName}
             onChangeText={setFirstName}
+            onFocus={() => form.onFieldFocus('firstName')}
           />
         </View>
 
         <Text style={styles.label}>Apellido</Text>
-        <View style={styles.inputContainer}>
+        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('lastName', event)}>
           <FontAwesome name="user" size={20} color="#ccc" style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Ingrese su apellido"
             value={lastName}
             onChangeText={setLastName}
+            onFocus={() => form.onFieldFocus('lastName')}
           />
         </View>
 
         <Text style={styles.label}>Correo</Text>
-        <View style={styles.inputContainer}>
+        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('email', event)}>
           <FontAwesome name="envelope" size={20} color="#ccc" style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Ingrese su correo"
             value={email}
             onChangeText={setEmail}
+            onFocus={() => form.onFieldFocus('email')}
             keyboardType="email-address"
             autoCapitalize="none"
           />
         </View>
 
         <Text style={styles.label}>Contraseña</Text>
-        <View style={styles.inputContainer}>
+        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('password', event)}>
           <FontAwesome name="lock" size={20} color="#ccc" style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Ingrese su contraseña"
             value={password}
             onChangeText={setPassword}
+            onFocus={() => form.onFieldFocus('password')}
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -181,13 +190,14 @@ export default function SignUp({ navigation }) {
         </View>
 
         <Text style={styles.label}>Confirmar Contraseña</Text>
-        <View style={styles.inputContainer}>
+        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('confirmPassword', event)}>
           <FontAwesome name="lock" size={20} color="#ccc" style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Confirme su contraseña"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
+            onFocus={() => form.onFieldFocus('confirmPassword')}
             secureTextEntry={!showConfirmPassword}
           />
           <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>

@@ -4,9 +4,11 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../src/config/firebaseConfig';
+import useCenteredForm from '../src/hooks/useCenteredForm';
 
 export default function Login({ navigation }) {
   const headerHeight = useHeaderHeight();
+  const form = useCenteredForm(headerHeight);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -71,8 +73,11 @@ export default function Login({ navigation }) {
       keyboardVerticalOffset={headerHeight}
     >
       <ScrollView
+        ref={form.scrollRef}
         style={styles.screen}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { paddingBottom: 20 + form.bottomSpace }]}
+        onLayout={form.onScrollLayout}
+        onContentSizeChange={form.onContentSizeChange}
         automaticallyAdjustKeyboardInsets={true}
         keyboardShouldPersistTaps="handled"
       >
@@ -80,26 +85,28 @@ export default function Login({ navigation }) {
         <Text style={styles.title}>Iniciar sesión</Text>
 
         <Text style={styles.label}>Correo</Text>
-        <View style={styles.inputContainer}>
+        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('email', event)}>
           <FontAwesome name="envelope" size={20} color="#ccc" style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Ingrese su correo"
             value={email}
             onChangeText={setEmail}
+            onFocus={() => form.onFieldFocus('email')}
             keyboardType="email-address"
             autoCapitalize="none"
           />
         </View>
 
         <Text style={styles.label}>Contraseña</Text>
-        <View style={styles.inputContainer}>
+        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('password', event)}>
           <FontAwesome name="lock" size={20} color="#ccc" style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Ingrese su contraseña"
             value={password}
             onChangeText={setPassword}
+            onFocus={() => form.onFieldFocus('password')}
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
