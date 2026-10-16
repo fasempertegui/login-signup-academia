@@ -1,13 +1,17 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../src/config/firebaseConfig';
 import useCenteredForm from '../src/hooks/useCenteredForm';
+import AuthScreen from '../src/components/AuthScreen';
+import AuthField from '../src/components/AuthField';
+import AuthButton from '../src/components/AuthButton';
+import { styles } from '../src/styles/academia';
 
 export default function Login({ navigation }) {
   const headerHeight = useHeaderHeight();
+  const gutter = useWindowDimensions().width <= 360 ? 20 : 28;
   const form = useCenteredForm(headerHeight);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,130 +70,31 @@ export default function Login({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior="height"
-      enabled={Platform.OS === 'android'}
-      keyboardVerticalOffset={headerHeight}
-    >
-      <ScrollView
-        ref={form.scrollRef}
-        style={styles.screen}
-        contentContainerStyle={[styles.container, { paddingBottom: 20 + form.bottomSpace }]}
-        onLayout={form.onScrollLayout}
-        onContentSizeChange={form.onContentSizeChange}
-        automaticallyAdjustKeyboardInsets={true}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Image source={require('../assets/logo.png')} style={styles.logo} />
-        <Text style={styles.title}>Iniciar sesión</Text>
-
-        <Text style={styles.label}>Correo</Text>
-        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('email', event)}>
-          <FontAwesome name="envelope" size={20} color="#ccc" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Ingrese su correo"
-            value={email}
-            onChangeText={setEmail}
-            onFocus={() => form.onFieldFocus('email')}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <Text style={styles.label}>Contraseña</Text>
-        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('password', event)}>
-          <FontAwesome name="lock" size={20} color="#ccc" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Ingrese su contraseña"
-            value={password}
-            onChangeText={setPassword}
-            onFocus={() => form.onFieldFocus('password')}
-            secureTextEntry={!showPassword}
-          />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <FontAwesome name={showPassword ? "eye-slash" : "eye"} size={20} color="#ccc" />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>{isLoading ? 'Ingresando…' : 'Ingresar'}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate('SignUp')} disabled={isLoading}>
-          <Text style={styles.signUpText}>¿No tienes cuenta aún? Regístrate</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    <AuthScreen form={form} headerHeight={headerHeight} title="Iniciá sesión">
+      <AuthField
+        label="Correo electrónico" icon="correo" placeholder="vos@ejemplo.com"
+        value={email} onChangeText={setEmail}
+        onLayout={event => form.onFieldLayout('email', event)}
+        onFocus={() => form.onFieldFocus('email')}
+        keyboardType="email-address" autoCapitalize="none" autoComplete="email" autoCorrect={false}
+      />
+      <AuthField
+        label="Contraseña" icon="candado" placeholder="Tu contraseña"
+        value={password} onChangeText={setPassword}
+        onLayout={event => form.onFieldLayout('password', event)}
+        onFocus={() => form.onFieldFocus('password')}
+        password showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)}
+        autoCapitalize="none" autoComplete="current-password" returnKeyType="go" onSubmitEditing={handleLogin}
+      />
+      <TouchableOpacity onPress={() => navigation.navigate('RecoverPassword')} disabled={isLoading} style={[styles.recovery, { marginRight: gutter - 8 }]}>
+        <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
+      </TouchableOpacity>
+      <AuthButton title={isLoading ? 'Ingresando…' : 'Ingresar'} onPress={handleLogin} disabled={isLoading} />
+      <View style={{ height: 28 }} />
+      <View style={[styles.invitation, { marginHorizontal: gutter }]}>
+        <Text style={styles.invitationText}>¿Primera vez por acá?</Text>
+        <AuthButton title="Creá tu cuenta" onPress={() => navigation.navigate('SignUp')} disabled={isLoading} secondary inset={false} />
+      </View>
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  label: {
-    alignSelf: 'flex-start',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 10,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: '#b9770e',
-    marginBottom: 20,
-    width: '100%',
-  },
-  icon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    height: 40,
-  },
-  button: {
-    backgroundColor: '#922b21',
-    paddingVertical: 10,
-    paddingHorizontal: 40,
-    borderRadius: 5,
-    marginTop: 20,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  signUpText: {
-    marginTop: 20,
-    color: '#007AFF',
-  },
-});

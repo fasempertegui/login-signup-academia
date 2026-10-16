@@ -1,17 +1,25 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import { View, Alert, useWindowDimensions } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { auth } from '../src/config/firebaseConfig';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import useCenteredForm from '../src/hooks/useCenteredForm';
+import AuthScreen from '../src/components/AuthScreen';
+import AuthField from '../src/components/AuthField';
+import AuthButton from '../src/components/AuthButton';
+import { styles } from '../src/styles/academia';
+import { generatedUsername, isValidBirthDate } from '../src/utils/registrationFields';
 
 export default function SignUp({ navigation }) {
   const headerHeight = useHeaderHeight();
+  const gutter = useWindowDimensions().width <= 360 ? 20 : 28;
   const form = useCenteredForm(headerHeight);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const username = generatedUsername(firstName, lastName);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +30,7 @@ export default function SignUp({ navigation }) {
   const handleSignUp = async () => {
     if (requestInProgress.current) return;
 
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password || !confirmPassword) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim() || !birthDate.trim() || !password || !confirmPassword) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
       return;
     }
@@ -42,6 +50,18 @@ export default function SignUp({ navigation }) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
       Alert.alert("Error", "Ingrese un correo válido, por ejemplo: nombre@dominio.com.");
+      return;
+    }
+
+    const phoneRegex = /^(?:\+?549)?[1-9]\d{9}$/;
+    const normalizedPhone = phone.replace(/[\s()-]/g, '');
+    if (!phoneRegex.test(normalizedPhone)) {
+      Alert.alert("Error", "Ingresá un celular argentino de 10 dígitos con código de área (ej.: 3875551234), o con prefijo +549.");
+      return;
+    }
+
+    if (!isValidBirthDate(birthDate)) {
+      Alert.alert("Error", "Ingresá una fecha de nacimiento válida en DD/MM/AAAA, no futura y de hasta 120 años.");
       return;
     }
 
@@ -117,170 +137,52 @@ export default function SignUp({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior="height"
-      enabled={Platform.OS === 'android'}
-      keyboardVerticalOffset={headerHeight}
-    >
-      <ScrollView
-        ref={form.scrollRef}
-        style={styles.screen}
-        contentContainerStyle={[styles.container, { paddingBottom: 20 + form.bottomSpace }]}
-        onLayout={form.onScrollLayout}
-        onContentSizeChange={form.onContentSizeChange}
-        automaticallyAdjustKeyboardInsets={true}
-        keyboardShouldPersistTaps="handled"
+    <AuthScreen form={form} headerHeight={headerHeight} title="Creá tu cuenta" description="Reservá canchas y seguí tus clases." compact onBack={() => !isLoading && navigation.goBack()}>
+      <View
+        style={[styles.row, { marginHorizontal: gutter }]}
+        onLayout={event => {
+          form.onFieldLayout('firstName', event);
+          form.onFieldLayout('lastName', event);
+        }}
       >
-        <Image source={require('../assets/logo.png')} style={styles.logo} />
-        <Text style={styles.title}>Regístrate</Text>
-
-        <Text style={styles.label}>Nombre</Text>
-        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('firstName', event)}>
-          <FontAwesome name="user" size={20} color="#ccc" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Ingrese su nombre"
-            value={firstName}
-            onChangeText={setFirstName}
-            onFocus={() => form.onFieldFocus('firstName')}
-          />
-        </View>
-
-        <Text style={styles.label}>Apellido</Text>
-        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('lastName', event)}>
-          <FontAwesome name="user" size={20} color="#ccc" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Ingrese su apellido"
-            value={lastName}
-            onChangeText={setLastName}
-            onFocus={() => form.onFieldFocus('lastName')}
-          />
-        </View>
-
-        <Text style={styles.label}>Correo</Text>
-        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('email', event)}>
-          <FontAwesome name="envelope" size={20} color="#ccc" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Ingrese su correo"
-            value={email}
-            onChangeText={setEmail}
-            onFocus={() => form.onFieldFocus('email')}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <Text style={styles.label}>Contraseña</Text>
-        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('password', event)}>
-          <FontAwesome name="lock" size={20} color="#ccc" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Ingrese su contraseña"
-            value={password}
-            onChangeText={setPassword}
-            onFocus={() => form.onFieldFocus('password')}
-            secureTextEntry={!showPassword}
-          />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <FontAwesome name={showPassword ? "eye-slash" : "eye"} size={20} color="#ccc" />
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.label}>Confirmar Contraseña</Text>
-        <View style={styles.inputContainer} onLayout={event => form.onFieldLayout('confirmPassword', event)}>
-          <FontAwesome name="lock" size={20} color="#ccc" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirme su contraseña"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            onFocus={() => form.onFieldFocus('confirmPassword')}
-            secureTextEntry={!showConfirmPassword}
-          />
-          <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-            <FontAwesome name={showConfirmPassword ? "eye-slash" : "eye"} size={20} color="#ccc" />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={handleSignUp}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>{isLoading ? 'Registrando…' : 'Registrarse'}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={isLoading}>
-          <Text style={styles.signUpText}>¿Ya tienes cuenta? Inicia sesión</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <AuthField label="Nombre" placeholder="Tu nombre" value={firstName} onChangeText={setFirstName} onFocus={() => form.onFieldFocus('firstName')} maxLength={100} autoComplete="given-name" autoCapitalize="words" inline />
+        <AuthField label="Apellido" placeholder="Tu apellido" value={lastName} onChangeText={setLastName} onFocus={() => form.onFieldFocus('lastName')} maxLength={100} autoComplete="family-name" autoCapitalize="words" inline />
+      </View>
+      <AuthField
+        label="Correo electrónico" icon="correo" placeholder="vos@ejemplo.com"
+        value={email} onChangeText={setEmail}
+        onLayout={event => form.onFieldLayout('email', event)} onFocus={() => form.onFieldFocus('email')}
+        keyboardType="email-address" autoCapitalize="none" autoComplete="email" autoCorrect={false}
+      />
+      <AuthField
+        label="Celular" icon="telefono" placeholder="Ej.: 3875551234"
+        value={phone} onChangeText={setPhone}
+        onLayout={event => form.onFieldLayout('phone', event)} onFocus={() => form.onFieldFocus('phone')}
+        keyboardType="phone-pad" autoComplete="tel" maxLength={30}
+      />
+      <AuthField
+        label="Fecha de nacimiento" icon="calendario" placeholder="DD/MM/AAAA"
+        value={birthDate} onChangeText={setBirthDate}
+        onLayout={event => form.onFieldLayout('birthDate', event)} onFocus={() => form.onFieldFocus('birthDate')}
+        keyboardType="numbers-and-punctuation" autoComplete="birthdate-full" maxLength={10}
+      />
+      <AuthField label="Nombre de usuario" icon="persona" placeholder="Se genera con tu nombre y apellido" value={username} editable={false} hint="Para iniciar sesión, usá tu correo electrónico." />
+      <AuthField
+        label="Contraseña" icon="candado" placeholder="Elegí tu contraseña"
+        value={password} onChangeText={setPassword}
+        onLayout={event => form.onFieldLayout('password', event)} onFocus={() => form.onFieldFocus('password')}
+        password showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)}
+        autoCapitalize="none" autoComplete="new-password"
+        hint="Mínimo 6 caracteres, con mayúscula, minúscula y número."
+      />
+      <AuthField
+        label="Confirmar contraseña" icon="candado" placeholder="Repetí tu contraseña"
+        value={confirmPassword} onChangeText={setConfirmPassword}
+        onLayout={event => form.onFieldLayout('confirmPassword', event)} onFocus={() => form.onFieldFocus('confirmPassword')}
+        password showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
+        autoCapitalize="none" autoComplete="new-password" returnKeyType="done" onSubmitEditing={handleSignUp}
+      />
+      <AuthButton title={isLoading ? 'Registrando…' : 'Crear cuenta'} onPress={handleSignUp} disabled={isLoading} />
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  label: {
-    alignSelf: 'flex-start',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 10,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: '#b9770e',
-    marginBottom: 20,
-    width: '100%',
-  },
-  icon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    height: 40,
-  },
-  button: {
-    backgroundColor: '#922b21',
-    paddingVertical: 10,
-    paddingHorizontal: 40,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  signUpText: {
-    marginTop: 20,
-    color: '#007AFF',
-  },
-});
