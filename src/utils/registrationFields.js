@@ -1,4 +1,17 @@
 // Estos campos se validan para el formulario de Academia TM, pero no se persisten.
+export function getNameError(value, label = 'nombre', { isEditing = false } = {}) {
+  const name = value.normalize('NFC').trim();
+  if (!name) return `Ingresá tu ${label}.`;
+  if (/\p{N}/u.test(name)) return `El ${label} no puede contener números.`;
+
+  // Letras Unicode y separadores habituales entre las partes de un nombre.
+  const nameRegex = /^\p{L}[\p{L}\p{M}]*(?:(?: +|[-'’])\p{L}[\p{L}\p{M}]*)*$/u;
+  // Permite seguir escribiendo «Jean-» u «O’» sin marcar un error prematuro.
+  const nameToCheck = isEditing ? name.replace(/[-'’]$/, '') : name;
+  if (!nameRegex.test(nameToCheck)) return 'Usá letras, espacios, guiones o apóstrofos.';
+  return '';
+}
+
 export function generatedUsername(firstName, lastName) {
   const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '');
   return normalize(lastName) + normalize(firstName).slice(0, 1);

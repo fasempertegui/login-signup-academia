@@ -8,7 +8,7 @@ import AuthScreen from '../src/components/AuthScreen';
 import AuthField from '../src/components/AuthField';
 import AuthButton from '../src/components/AuthButton';
 import { styles } from '../src/styles/academia';
-import { generatedUsername, isValidBirthDate } from '../src/utils/registrationFields';
+import { generatedUsername, getNameError, isValidBirthDate } from '../src/utils/registrationFields';
 
 export default function SignUp({ navigation }) {
   const headerHeight = useHeaderHeight();
@@ -16,6 +16,7 @@ export default function SignUp({ navigation }) {
   const form = useCenteredForm(headerHeight);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [nameErrors, setNameErrors] = useState({ firstName: '', lastName: '' });
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
@@ -27,23 +28,34 @@ export default function SignUp({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const requestInProgress = useRef(false);
 
+  const handleNameChange = (field, value, setValue, label) => {
+    setValue(value);
+    setNameErrors(previous => ({
+      ...previous,
+      [field]: value.trim() ? getNameError(value, label, { isEditing: true }) : '',
+    }));
+  };
+
+  const validateNameOnBlur = (field, value, label) => {
+    // Al terminar, comprobar también separadores que quedaron incompletos.
+    setNameErrors(previous => ({
+      ...previous,
+      [field]: value.trim() ? getNameError(value, label) : '',
+    }));
+  };
+
   const handleSignUp = async () => {
     if (requestInProgress.current) return;
 
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim() || !birthDate.trim() || !password || !confirmPassword) {
+    const nextNameErrors = {
+      firstName: getNameError(firstName, 'nombre'),
+      lastName: getNameError(lastName, 'apellido'),
+    };
+    setNameErrors(nextNameErrors);
+    if (nextNameErrors.firstName || nextNameErrors.lastName) return;
+
+    if (!email.trim() || !phone.trim() || !birthDate.trim() || !password || !confirmPassword) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
-      return;
-    }
-
-    // Acepta únicamente letras a-z, A-Z, ñ y Ñ.
-    const nameRegex = /^[a-zA-ZñÑ]+$/;
-    if (!nameRegex.test(firstName)) {
-      Alert.alert("Error", "El nombre solo puede contener letras, sin espacios ni símbolos.");
-      return;
-    }
-
-    if (!nameRegex.test(lastName)) {
-      Alert.alert("Error", "El apellido solo puede contener letras, sin espacios ni símbolos.");
       return;
     }
 
@@ -145,8 +157,22 @@ export default function SignUp({ navigation }) {
           form.onFieldLayout('lastName', event);
         }}
       >
-        <AuthField label="Nombre" placeholder="Tu nombre" value={firstName} onChangeText={setFirstName} onFocus={() => form.onFieldFocus('firstName')} maxLength={100} autoComplete="given-name" autoCapitalize="words" inline />
-        <AuthField label="Apellido" placeholder="Tu apellido" value={lastName} onChangeText={setLastName} onFocus={() => form.onFieldFocus('lastName')} maxLength={100} autoComplete="family-name" autoCapitalize="words" inline />
+        <AuthField
+          label="Nombre" placeholder="Tu nombre" value={firstName}
+          onChangeText={value => handleNameChange('firstName', value, setFirstName, 'nombre')}
+          onFocus={() => form.onFieldFocus('firstName')}
+          onBlur={() => validateNameOnBlur('firstName', firstName, 'nombre')}
+          error={nameErrors.firstName}
+          maxLength={100} autoComplete="given-name" autoCapitalize="words" autoCorrect={false} inline
+        />
+        <AuthField
+          label="Apellido" placeholder="Tu apellido" value={lastName}
+          onChangeText={value => handleNameChange('lastName', value, setLastName, 'apellido')}
+          onFocus={() => form.onFieldFocus('lastName')}
+          onBlur={() => validateNameOnBlur('lastName', lastName, 'apellido')}
+          error={nameErrors.lastName}
+          maxLength={100} autoComplete="family-name" autoCapitalize="words" autoCorrect={false} inline
+        />
       </View>
       <AuthField
         label="Correo electrónico" icon="correo" placeholder="vos@ejemplo.com"

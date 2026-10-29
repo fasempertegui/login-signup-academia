@@ -5,6 +5,7 @@ export const colors = {
   background: '#F8F6F0', white: '#FFFFFF', night: '#291334',
   text: '#23192A', muted: '#6B6072', placeholder: '#776C7E',
   border: '#8A7D95', separator: '#DED7E3',
+  error: '#AB3434',
 };
 
 export const fonts = {
