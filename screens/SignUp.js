@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { View, Alert, useWindowDimensions } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { auth } from '../src/config/firebaseConfig';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import useCenteredForm from '../src/hooks/useCenteredForm';
+import useDialog from '../src/hooks/useDialog';
 import AuthScreen from '../src/components/AuthScreen';
 import AuthField from '../src/components/AuthField';
 import AuthButton from '../src/components/AuthButton';
@@ -15,6 +16,7 @@ import {
 } from '../src/utils/registrationFields';
 
 export default function SignUp({ navigation }) {
+  const { showDialog } = useDialog();
   const headerHeight = useHeaderHeight();
   const gutter = useWindowDimensions().width <= 360 ? 20 : 28;
   const form = useCenteredForm(headerHeight);
@@ -139,16 +141,17 @@ export default function SignUp({ navigation }) {
         isSavingName = true;
         try {
           await updateProfile(credential.user, { displayName });
-          Alert.alert("Registro exitoso", "Usuario registrado con éxito.");
+          showDialog({ title: 'Cuenta creada', message: 'Tu cuenta de Academia TM está lista.', variant: 'success' });
         } catch (error) {
-          Alert.alert(
-            "Cuenta creada",
-            "La cuenta se creó, pero no se pudo guardar el nombre.",
-            [
-              { text: "Cerrar", style: "cancel" },
-              { text: "Reintentar", onPress: saveName },
-            ]
-          );
+          showDialog({
+            title: 'Falta guardar tu nombre',
+            message: 'Tu cuenta ya se creó, pero no pudimos guardar tu nombre. Podés volver a intentarlo.',
+            variant: 'warning',
+            actions: [
+              { label: 'Reintentar', onPress: saveName },
+              { label: 'Cerrar', variant: 'secondary' },
+            ],
+          });
         } finally {
           isSavingName = false;
         }
@@ -156,7 +159,7 @@ export default function SignUp({ navigation }) {
 
       await saveName();
     } catch (error) {
-      console.error('Error de registro:', error.code, error.message);
+      console.info('Registro rechazado:', error.code, error.message);
       let errorMessage = "Hubo un problema al registrar el usuario.";
       switch (error.code) {
         case 'auth/email-already-in-use':
@@ -172,10 +175,10 @@ export default function SignUp({ navigation }) {
           errorMessage = "Error de conexión, por favor intenta más tarde.";
           break;
         case 'auth/invalid-api-key':
-          errorMessage = "La clave API de Firebase no es válida. Revisa el archivo .env.";
+          errorMessage = "El servicio no está disponible en este momento. Intentá nuevamente más tarde.";
           break;
       }
-      Alert.alert("Error", `${errorMessage}\n\nCódigo: ${error.code ?? 'desconocido'}`);
+      showDialog({ title: 'No pudimos crear tu cuenta', message: errorMessage, variant: 'error' });
     } finally {
       requestInProgress.current = false;
       setIsLoading(false);

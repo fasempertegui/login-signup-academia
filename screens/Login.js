@@ -1,15 +1,17 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../src/config/firebaseConfig';
 import useCenteredForm from '../src/hooks/useCenteredForm';
+import useDialog from '../src/hooks/useDialog';
 import AuthScreen from '../src/components/AuthScreen';
 import AuthField from '../src/components/AuthField';
 import AuthButton from '../src/components/AuthButton';
 import { styles } from '../src/styles/academia';
 
 export default function Login({ navigation }) {
+  const { showDialog } = useDialog();
   const headerHeight = useHeaderHeight();
   const gutter = useWindowDimensions().width <= 360 ? 20 : 28;
   const form = useCenteredForm(headerHeight);
@@ -23,13 +25,13 @@ export default function Login({ navigation }) {
     if (requestInProgress.current) return;
 
     if (!email.trim() || !password) {
-      Alert.alert("Error", "Por favor ingrese ambos campos.");
+      showDialog({ title: 'Completá tus datos', message: 'Ingresá tu correo electrónico y contraseña.', variant: 'warning' });
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      Alert.alert("Error", "Ingrese un correo válido, por ejemplo: nombre@dominio.com.");
+      showDialog({ title: 'Revisá tu correo', message: 'Ingresá un correo electrónico válido.', variant: 'warning' });
       return;
     }
 
@@ -37,10 +39,10 @@ export default function Login({ navigation }) {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      Alert.alert("Login exitoso", "Has iniciado sesión correctamente.");
+      showDialog({ title: 'Sesión iniciada', message: 'Ya ingresaste a tu cuenta de Academia TM.', variant: 'success' });
       // El observador de Firebase cambia la pantalla al detectar la sesión.
     } catch (error) {
-      console.error('Error de inicio de sesión:', error.code, error.message);
+      console.info('Inicio de sesión rechazado:', error.code, error.message);
       let errorMessage = "Hubo un problema al iniciar sesión.";
       switch (error.code) {
         case 'auth/invalid-email':
@@ -59,10 +61,10 @@ export default function Login({ navigation }) {
           errorMessage = "Error de conexión, por favor intenta más tarde.";
           break;
         case 'auth/invalid-api-key':
-          errorMessage = "La clave API de Firebase no es válida. Revisa el archivo .env.";
+          errorMessage = "El servicio no está disponible en este momento. Intentá nuevamente más tarde.";
           break;
       }
-      Alert.alert("Error", `${errorMessage}\n\nCódigo: ${error.code ?? 'desconocido'}`);
+      showDialog({ title: 'No pudimos iniciar sesión', message: errorMessage, variant: 'error' });
     } finally {
       requestInProgress.current = false;
       setIsLoading(false);

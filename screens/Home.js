@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { onIdTokenChanged, signOut } from 'firebase/auth';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts } from '../src/styles/academia';
 import { auth } from '../src/config/firebaseConfig';
+import useDialog from '../src/hooks/useDialog';
 
 export default function Home() {
+  const { showDialog } = useDialog();
   const [user, setUser] = useState(auth.currentUser);
 
   useEffect(() => onIdTokenChanged(auth, currentUser => {
@@ -16,11 +18,11 @@ export default function Home() {
 
   const handleLogOut = async () => {
     try {
-      await signOut(auth);  
-      Alert.alert("Sesión cerrada", "Has cerrado sesión correctamente.");
+      await signOut(auth);
+      showDialog({ title: 'Sesión cerrada', message: 'Cerraste tu sesión correctamente.', variant: 'success' });
       // El observador de Firebase muestra Login al cerrar la sesión.
     } catch (error) {
-      Alert.alert("Error", "Hubo un problema al cerrar sesión.");
+      showDialog({ title: 'No pudimos cerrar sesión', message: 'Intentá nuevamente en unos momentos.', variant: 'error' });
     }
   };
 

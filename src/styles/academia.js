@@ -7,6 +7,10 @@ export const colors = {
   border: '#8A7D95', separator: '#DED7E3',
   error: '#AB3434',
   success: '#24634A',
+  successBackground: '#E8F3EB', errorBackground: '#FBECEC',
+  warning: '#805212', warningBackground: '#FFF2D8',
+  information: '#245F6B', informationBackground: '#EAF3F5',
+  modalBackdrop: 'rgba(35, 25, 42, 0.6)',
 };
 
 export const fonts = {

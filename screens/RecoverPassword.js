@@ -1,14 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { Alert } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../src/config/firebaseConfig';
 import useCenteredForm from '../src/hooks/useCenteredForm';
+import useDialog from '../src/hooks/useDialog';
 import AuthScreen from '../src/components/AuthScreen';
 import AuthField from '../src/components/AuthField';
 import AuthButton from '../src/components/AuthButton';
 
 export default function RecoverPassword({ navigation }) {
+  const { showDialog } = useDialog();
   const headerHeight = useHeaderHeight();
   const form = useCenteredForm(headerHeight);
   const [email, setEmail] = useState('');
@@ -19,22 +20,22 @@ export default function RecoverPassword({ navigation }) {
     if (requestInProgress.current) return;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      Alert.alert('Error', 'Ingrese un correo válido, por ejemplo: nombre@dominio.com.');
+      showDialog({ title: 'Revisá tu correo', message: 'Ingresá un correo electrónico válido.', variant: 'warning' });
       return;
     }
     requestInProgress.current = true;
     setIsLoading(true);
     try {
       await sendPasswordResetEmail(auth, email.trim());
-      Alert.alert('Revisá tu correo', 'Si existe una cuenta con ese correo, recibirás un enlace para recuperar tu contraseña. Revisá también el correo no deseado.');
+      showDialog({ title: 'Revisá tu correo', message: 'Si existe una cuenta con ese correo, recibirás un enlace para recuperar tu contraseña. Revisá también el correo no deseado.', variant: 'info' });
     } catch (error) {
       if (error.code === 'auth/user-not-found') {
-        Alert.alert('Revisá tu correo', 'Si existe una cuenta con ese correo, recibirás un enlace para recuperar tu contraseña.');
+        showDialog({ title: 'Revisá tu correo', message: 'Si existe una cuenta con ese correo, recibirás un enlace para recuperar tu contraseña. Revisá también el correo no deseado.', variant: 'info' });
       } else {
         const message = error.code === 'auth/too-many-requests'
           ? 'Demasiados intentos. Esperá unos minutos antes de volver a intentar.'
           : 'No pudimos enviar el enlace. Revisá tu conexión e intentá nuevamente.';
-        Alert.alert('Error', message);
+        showDialog({ title: 'No pudimos enviar el enlace', message, variant: 'error' });
       }
     } finally {
       requestInProgress.current = false;
