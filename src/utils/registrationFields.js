@@ -20,6 +20,14 @@ export function getEmailError(value) {
   return '';
 }
 
+export function getPhoneError(value) {
+  if (!value.trim()) return 'Ingresá tu celular.';
+  const normalizedPhone = value.replace(/[\s()-]/g, '');
+  const phoneRegex = /^(?:\+?549)?[1-9]\d{9}$/;
+  if (!phoneRegex.test(normalizedPhone)) return 'Revisá el número ingresado';
+  return '';
+}
+
 export function generatedUsername(firstName, lastName) {
   const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '');
   return normalize(lastName) + normalize(firstName).slice(0, 1);

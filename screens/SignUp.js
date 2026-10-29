@@ -8,7 +8,7 @@ import AuthScreen from '../src/components/AuthScreen';
 import AuthField from '../src/components/AuthField';
 import AuthButton from '../src/components/AuthButton';
 import { styles } from '../src/styles/academia';
-import { generatedUsername, getEmailError, getNameError, isValidBirthDate } from '../src/utils/registrationFields';
+import { generatedUsername, getEmailError, getNameError, getPhoneError, isValidBirthDate } from '../src/utils/registrationFields';
 
 export default function SignUp({ navigation }) {
   const headerHeight = useHeaderHeight();
@@ -20,6 +20,7 @@ export default function SignUp({ navigation }) {
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const username = generatedUsername(firstName, lastName);
   const [password, setPassword] = useState('');
@@ -55,6 +56,15 @@ export default function SignUp({ navigation }) {
     setEmailError(email.trim() ? getEmailError(email) : '');
   };
 
+  const handlePhoneChange = value => {
+    setPhone(value);
+    setPhoneError('');
+  };
+
+  const validatePhoneOnBlur = () => {
+    setPhoneError(phone.trim() ? getPhoneError(phone) : '');
+  };
+
   const handleSignUp = async () => {
     if (requestInProgress.current) return;
 
@@ -63,19 +73,14 @@ export default function SignUp({ navigation }) {
       lastName: getNameError(lastName, 'apellido'),
     };
     const nextEmailError = getEmailError(email);
+    const nextPhoneError = getPhoneError(phone);
     setNameErrors(nextNameErrors);
     setEmailError(nextEmailError);
-    if (nextNameErrors.firstName || nextNameErrors.lastName || nextEmailError) return;
+    setPhoneError(nextPhoneError);
+    if (nextNameErrors.firstName || nextNameErrors.lastName || nextEmailError || nextPhoneError) return;
 
-    if (!phone.trim() || !birthDate.trim() || !password || !confirmPassword) {
+    if (!birthDate.trim() || !password || !confirmPassword) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
-      return;
-    }
-
-    const phoneRegex = /^(?:\+?549)?[1-9]\d{9}$/;
-    const normalizedPhone = phone.replace(/[\s()-]/g, '');
-    if (!phoneRegex.test(normalizedPhone)) {
-      Alert.alert("Error", "Ingresá un celular argentino de 10 dígitos con código de área (ej.: 3875551234), o con prefijo +549.");
       return;
     }
 
@@ -190,9 +195,11 @@ export default function SignUp({ navigation }) {
       />
       <AuthField
         label="Celular" icon="telefono" placeholder="Ej.: 3875551234"
-        value={phone} onChangeText={setPhone}
+        value={phone} onChangeText={handlePhoneChange}
         onLayout={event => form.onFieldLayout('phone', event)} onFocus={() => form.onFieldFocus('phone')}
+        onBlur={validatePhoneOnBlur} error={phoneError}
         keyboardType="phone-pad" autoComplete="tel" maxLength={30}
+        hint="Con código de área, sin 0 ni 15. También podés usar +549."
       />
       <AuthField
         label="Fecha de nacimiento" icon="calendario" placeholder="DD/MM/AAAA"
