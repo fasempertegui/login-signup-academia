@@ -11,6 +11,8 @@ export const colors = {
   warning: '#805212', warningBackground: '#FFF2D8',
   information: '#245F6B', informationBackground: '#EAF3F5',
   modalBackdrop: 'rgba(35, 25, 42, 0.6)',
+  textOnDark: '#DDD3E5', textOnLime: '#283400',
+  alternative: '#F0EDF2', disabledText: '#6C6275', arcillaText: '#7C3C25',
 };
 
 export const fonts = {

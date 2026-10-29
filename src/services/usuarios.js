@@ -1,6 +1,13 @@
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
 import { crearDatosUsuario } from '../models/usuario';
+
+export function observarUsuario(uid, onData, onError) {
+  if (!db || !uid) throw new Error('No se puede consultar el perfil sin una sesión configurada.');
+  return onSnapshot(doc(db, 'usuarios', uid), snapshot => {
+    onData(snapshot.exists() ? snapshot.data() : null);
+  }, onError);
+}
 
 export async function guardarUsuario(uid, datos) {
   if (!db) throw new Error('Firestore no está configurado.');

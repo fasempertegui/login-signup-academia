@@ -1,51 +1,84 @@
-import React, { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { onIdTokenChanged, signOut } from 'firebase/auth';
+import React, { useEffect, useRef, useState } from 'react';
+import { BackHandler, Image, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { signOut } from 'firebase/auth';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, fonts } from '../src/styles/academia';
 import { auth } from '../src/config/firebaseConfig';
 import useDialog from '../src/hooks/useDialog';
+import useUsuario from '../src/hooks/useUsuario';
+import AccountSidebar from '../src/components/AccountSidebar';
+import Icon from '../src/components/Icon';
+import Profile from './Profile';
+import { colors } from '../src/styles/academia';
+import s from '../src/styles/portal';
 
 export default function Home() {
   const { showDialog } = useDialog();
-  const [user, setUser] = useState(auth.currentUser);
+  const { usuario, status, retry } = useUsuario(auth.currentUser?.uid);
+  const [section, setSection] = useState('inicio');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const logoutInProgress = useRef(false);
+  const scrollRef = useRef(null);
+  const gutter = useWindowDimensions().width <= 360 ? 20 : 24;
 
-  useEffect(() => onIdTokenChanged(auth, currentUser => {
-    // Copiamos los datos visibles para reflejar también el updateProfile del registro.
-    setUser(currentUser ? { displayName: currentUser.displayName, email: currentUser.email } : null);
-  }), []);
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (section !== 'perfil') return false;
+      setSection('inicio');
+      return true;
+    });
+    return () => subscription.remove();
+  }, [section]);
+
+  const navigate = destination => {
+    setSection(destination);
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  };
 
   const handleLogOut = async () => {
+    if (logoutInProgress.current) return;
+    logoutInProgress.current = true;
+    setLoggingOut(true);
+    setMenuOpen(false);
     try {
       await signOut(auth);
       showDialog({ title: 'Sesión cerrada', message: 'Cerraste tu sesión correctamente.', variant: 'success' });
-      // El observador de Firebase muestra Login al cerrar la sesión.
-    } catch (error) {
+    } catch {
       showDialog({ title: 'No pudimos cerrar sesión', message: 'Intentá nuevamente en unos momentos.', variant: 'error' });
+    } finally {
+      logoutInProgress.current = false;
+      setLoggingOut(false);
     }
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
-      <Image source={require('../assets/logo.png')} style={styles.logo} />
-      <Text style={styles.title}>Bienvenido a Academia TM</Text>
-      {user?.displayName ? <Text style={styles.name}>{user.displayName}</Text> : null}
-      <Text style={styles.email}>{user?.email}</Text>
-      <TouchableOpacity style={styles.button} onPress={handleLogOut}>
-        <Text style={styles.buttonText}>Cerrar sesión</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
-  );
+  const fecha = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+  return <SafeAreaView style={s.screen}>
+    <StatusBar style="dark" />
+    <View style={s.shell} accessibilityElementsHidden={menuOpen} importantForAccessibility={menuOpen ? 'no-hide-descendants' : 'auto'}>
+      <View style={s.header}>
+        <TouchableOpacity style={s.iconButton} onPress={() => setMenuOpen(true)} accessibilityRole="button" accessibilityLabel="Abrir menú de cuenta" accessibilityState={{ expanded: menuOpen }}><Icon name="menu" size={24} color={colors.text} /></TouchableOpacity>
+        <View style={s.brand}><Image source={require('../assets/logo.png')} style={s.logo} /><Text style={s.brandText}>Academia TM</Text></View>
+      </View>
+      <ScrollView ref={scrollRef} contentContainerStyle={[s.content, { paddingHorizontal: gutter }]}>
+        {section === 'inicio' ? <>
+          <View style={s.hero}><Text style={s.heroDate}>{fecha}</Text><Text style={s.greeting} accessibilityRole="header">{usuario?.nombre ? `Hola, ${usuario.nombre}.` : 'Hola.'}</Text></View>
+        </> : <>
+          <Profile usuario={usuario} status={status} retry={retry} />
+        </>}
+      </ScrollView>
+      <View style={s.bottomNavigation}>
+        <TouchableOpacity style={s.navigationItem} onPress={() => navigate('inicio')} accessibilityRole="tab" accessibilityLabel="Inicio" accessibilityState={{ selected: section === 'inicio' }}>
+          <Icon name="casa" size={24} color={section === 'inicio' ? colors.primary : colors.muted} />
+          <Text style={[s.navigationLabel, section === 'inicio' && s.navigationLabelSelected]}>Inicio</Text>
+          {section === 'inicio' ? <View style={s.navigationIndicator} /> : null}
+        </TouchableOpacity>
+        <TouchableOpacity style={s.navigationItem} disabled accessibilityRole="tab" accessibilityLabel="Sedes" accessibilityState={{ disabled: true }}>
+          <Icon name="ubicacion" size={24} color={colors.disabledText} />
+          <Text style={[s.navigationLabel, s.disabledText]}>Sedes</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+    <AccountSidebar visible={menuOpen} usuario={usuario} status={status} section={section} onClose={() => setMenuOpen(false)} onNavigate={navigate} onLogOut={handleLogOut} loggingOut={loggingOut} />
+  </SafeAreaView>;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 28, backgroundColor: colors.background },
-  logo: { width: 150, height: 150, borderRadius: 16, marginBottom: 28 },
-  title: { fontFamily: fonts.title, fontSize: 26, lineHeight: 33, color: colors.text, textAlign: 'center', marginBottom: 20 },
-  name: { fontFamily: fonts.bold, fontSize: 20, color: colors.primary, textAlign: 'center', marginBottom: 8 },
-  email: { fontFamily: fonts.body, fontSize: 16, color: colors.muted, textAlign: 'center' },
-  button: { backgroundColor: colors.primary, minHeight: 48, paddingVertical: 12, paddingHorizontal: 28, borderRadius: 10, marginTop: 28 },
-  buttonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 16 },
-});

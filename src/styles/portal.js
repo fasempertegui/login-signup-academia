@@ -1,0 +1,31 @@
+import { StyleSheet } from 'react-native';
+import { colors, fonts } from './academia';
+
+export default StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
+  shell: { flex: 1, width: '100%', maxWidth: 480, alignSelf: 'center', backgroundColor: colors.background },
+  header: { minHeight: 76, paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 18 },
+  iconButton: { width: 44, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
+  logo: { width: 30, height: 30, borderRadius: 5 },
+  brandText: { fontFamily: fonts.title, fontSize: 17, color: colors.text },
+  content: { paddingTop: 28, paddingBottom: 48, gap: 28 },
+  title: { fontFamily: fonts.title, fontSize: 30, lineHeight: 38, letterSpacing: -0.8, color: colors.text },
+  sectionTitle: { fontFamily: fonts.title, fontSize: 21, lineHeight: 27, letterSpacing: -0.4, color: colors.text },
+  muted: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21, color: colors.muted },
+  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 24, color: colors.text },
+  hero: { padding: 24, borderRadius: 20, backgroundColor: colors.primary, gap: 8 },
+  heroDate: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21, color: colors.textOnDark },
+  greeting: { fontFamily: fonts.title, fontSize: 32, lineHeight: 40, color: colors.white },
+  bottomNavigation: { flexDirection: 'row', paddingTop: 10, paddingBottom: 12, paddingHorizontal: 16, borderTopWidth: 1, borderTopColor: colors.separator, backgroundColor: colors.white },
+  navigationItem: { flex: 1, minHeight: 56, alignItems: 'center', justifyContent: 'center', gap: 5, paddingBottom: 5, borderRadius: 10 },
+  navigationLabel: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21, color: colors.muted },
+  navigationLabelSelected: { fontFamily: fonts.bold, color: colors.text },
+  navigationIndicator: { position: 'absolute', bottom: 0, width: 18, height: 3, borderRadius: 2, backgroundColor: colors.lime },
+  disabledText: { color: colors.disabledText },
+  profileHeader: { padding: 24, borderRadius: 18, backgroundColor: colors.night, gap: 8 },
+  profileTitle: { color: colors.white },
+  dataSection: { gap: 16 },
+  dataRow: { gap: 5, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: colors.separator },
+  state: { padding: 20, gap: 16, borderRadius: 14, backgroundColor: colors.white },
+});
