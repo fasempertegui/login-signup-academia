@@ -18,6 +18,10 @@
     },
     "web": {
       "favicon": "./assets/logo.png"
-    }
+    },
+    "plugins": [
+      "expo-font",
+      "expo-status-bar"
+    ]
   }
 }

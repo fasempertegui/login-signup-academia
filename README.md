@@ -4,9 +4,9 @@ Proyecto Expo en JavaScript para practicar registro, inicio y cierre de sesión 
 
 ## Requisitos
 
-- Node.js 22 LTS. Expo SDK 57 requiere Node.js 22.13 o posterior.
+- Node.js 22 LTS (22.13 o posterior) o Node.js 24 LTS (24.3 o posterior), compatibles con Expo SDK 58.
 - npm, incluido con Node.js.
-- Expo Go actualizado en el teléfono.
+- Expo Go compatible con SDK 58 en el teléfono.
 - Una cuenta de Firebase.
 
 Para comprobar la instalación en CMD o PowerShell:
