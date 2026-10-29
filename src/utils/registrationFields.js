@@ -48,6 +48,27 @@ export function getBirthDateError(value) {
   return '';
 }
 
+export function getPasswordRequirements(value) {
+  return [
+    { id: 'length', label: 'Al menos 6 caracteres', met: /^.{6,}$/.test(value) },
+    { id: 'uppercase', label: 'Una letra mayúscula', met: /[A-Z]/.test(value) },
+    { id: 'lowercase', label: 'Una letra minúscula', met: /[a-z]/.test(value) },
+    { id: 'number', label: 'Un número', met: /\d/.test(value) },
+  ];
+}
+
+export function getPasswordError(value) {
+  if (!value) return 'Ingresá tu contraseña.';
+  if (!getPasswordRequirements(value).every(requirement => requirement.met)) return 'Revisá los requisitos de la contraseña';
+  return '';
+}
+
+export function getConfirmPasswordError(value, password) {
+  if (!value) return 'Confirmá tu contraseña.';
+  if (value !== password) return 'Las contraseñas no coinciden';
+  return '';
+}
+
 export function generatedUsername(firstName, lastName) {
   const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '');
   return normalize(lastName) + normalize(firstName).slice(0, 1);

@@ -7,8 +7,12 @@ import useCenteredForm from '../src/hooks/useCenteredForm';
 import AuthScreen from '../src/components/AuthScreen';
 import AuthField from '../src/components/AuthField';
 import AuthButton from '../src/components/AuthButton';
+import PasswordChecklist from '../src/components/PasswordChecklist';
 import { styles } from '../src/styles/academia';
-import { formatBirthDate, generatedUsername, getBirthDateError, getEmailError, getNameError, getPhoneError } from '../src/utils/registrationFields';
+import {
+  formatBirthDate, generatedUsername, getBirthDateError, getConfirmPasswordError,
+  getEmailError, getNameError, getPasswordError, getPhoneError,
+} from '../src/utils/registrationFields';
 
 export default function SignUp({ navigation }) {
   const headerHeight = useHeaderHeight();
@@ -25,7 +29,10 @@ export default function SignUp({ navigation }) {
   const [birthDateError, setBirthDateError] = useState('');
   const username = generatedUsername(firstName, lastName);
   const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const confirmationValidated = useRef(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,6 +82,25 @@ export default function SignUp({ navigation }) {
     setBirthDateError(birthDate.trim() ? getBirthDateError(birthDate) : '');
   };
 
+  const handlePasswordChange = value => {
+    setPassword(value);
+    setPasswordError('');
+    // Una confirmación ya completada depende también de la contraseña original.
+    if (confirmationValidated.current && confirmPassword) {
+      setConfirmPasswordError(getConfirmPasswordError(confirmPassword, value));
+    }
+  };
+
+  const handleConfirmPasswordChange = value => {
+    setConfirmPassword(value);
+    setConfirmPasswordError('');
+  };
+
+  const validateConfirmPasswordOnBlur = () => {
+    confirmationValidated.current = true;
+    setConfirmPasswordError(confirmPassword ? getConfirmPasswordError(confirmPassword, password) : '');
+  };
+
   const handleSignUp = async () => {
     if (requestInProgress.current) return;
 
@@ -85,30 +111,20 @@ export default function SignUp({ navigation }) {
     const nextEmailError = getEmailError(email);
     const nextPhoneError = getPhoneError(phone);
     const nextBirthDateError = getBirthDateError(birthDate);
+    const nextPasswordError = getPasswordError(password);
+    const nextConfirmPasswordError = getConfirmPasswordError(confirmPassword, password);
     setNameErrors(nextNameErrors);
     setEmailError(nextEmailError);
     setPhoneError(nextPhoneError);
     setBirthDateError(nextBirthDateError);
-    if (nextNameErrors.firstName || nextNameErrors.lastName || nextEmailError || nextPhoneError || nextBirthDateError) return;
-
-    if (!password || !confirmPassword) {
-      Alert.alert("Error", "Todos los campos son obligatorios.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Las contraseñas no coinciden.");
-      return;
-    }
-
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
-    if (!passwordRegex.test(password)) {
-      Alert.alert(
-        "Error",
-        "La contraseña debe tener al menos 6 caracteres, incluyendo una letra mayúscula, una minúscula y un número."
-      );
-      return;
-    }
+    setPasswordError(nextPasswordError);
+    setConfirmPasswordError(nextConfirmPasswordError);
+    confirmationValidated.current = true;
+    const hasErrors = [
+      nextNameErrors.firstName, nextNameErrors.lastName, nextEmailError,
+      nextPhoneError, nextBirthDateError, nextPasswordError, nextConfirmPasswordError,
+    ].some(Boolean);
+    if (hasErrors) return;
 
     requestInProgress.current = true;
     setIsLoading(true);
@@ -206,7 +222,7 @@ export default function SignUp({ navigation }) {
         onLayout={event => form.onFieldLayout('phone', event)} onFocus={() => form.onFieldFocus('phone')}
         onBlur={validatePhoneOnBlur} error={phoneError}
         keyboardType="phone-pad" autoComplete="tel" maxLength={30}
-        hint="Con código de área, sin 0 ni 15. También podés usar +549."
+        hint="Con código de área, sin 0 ni 15."
       />
       <AuthField
         label="Fecha de nacimiento" icon="calendario" placeholder="DD/MM/AAAA"
@@ -215,21 +231,24 @@ export default function SignUp({ navigation }) {
         onBlur={validateBirthDateOnBlur} error={birthDateError}
         keyboardType="number-pad" autoComplete="birthdate-full" maxLength={10}
       />
-      <AuthField label="Nombre de usuario" icon="persona" placeholder="Se genera con tu nombre y apellido" value={username} editable={false} hint="Para iniciar sesión, usá tu correo electrónico." />
+      <AuthField label="Nombre de usuario" icon="persona" placeholder="Se genera con tu nombre y apellido" value={username} editable={false} />
       <AuthField
         label="Contraseña" icon="candado" placeholder="Elegí tu contraseña"
-        value={password} onChangeText={setPassword}
+        value={password} onChangeText={handlePasswordChange} error={passwordError}
         onLayout={event => form.onFieldLayout('password', event)} onFocus={() => form.onFieldFocus('password')}
         password showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)}
-        autoCapitalize="none" autoComplete="new-password"
-        hint="Mínimo 6 caracteres, con mayúscula, minúscula y número."
-      />
+        autoCapitalize="none" autoComplete="new-password" autoCorrect={false}
+        accessibilityHint="Requisitos: al menos 6 caracteres, una mayúscula, una minúscula y un número."
+      >
+        <PasswordChecklist password={password} />
+      </AuthField>
       <AuthField
         label="Confirmar contraseña" icon="candado" placeholder="Repetí tu contraseña"
-        value={confirmPassword} onChangeText={setConfirmPassword}
+        value={confirmPassword} onChangeText={handleConfirmPasswordChange}
         onLayout={event => form.onFieldLayout('confirmPassword', event)} onFocus={() => form.onFieldFocus('confirmPassword')}
+        onBlur={validateConfirmPasswordOnBlur} error={confirmPasswordError}
         password showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
-        autoCapitalize="none" autoComplete="new-password" returnKeyType="done" onSubmitEditing={handleSignUp}
+        autoCapitalize="none" autoComplete="new-password" autoCorrect={false} returnKeyType="done" onSubmitEditing={handleSignUp}
       />
       <AuthButton title={isLoading ? 'Registrando…' : 'Crear cuenta'} onPress={handleSignUp} disabled={isLoading} />
     </AuthScreen>

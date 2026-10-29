@@ -6,6 +6,7 @@ export const colors = {
   text: '#23192A', muted: '#6B6072', placeholder: '#776C7E',
   border: '#8A7D95', separator: '#DED7E3',
   error: '#AB3434',
+  success: '#24634A',
 };
 
 export const fonts = {

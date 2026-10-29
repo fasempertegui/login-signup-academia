@@ -2,6 +2,7 @@ import React from 'react';
 import Svg, { Path } from 'react-native-svg';
 
 const paths = {
+  "check": ["M5 13L9 17L19 7"],
   "persona": [
     "M5 20V19C5 15.134 8.13401 12 12 12V12C15.866 12 19 15.134 19 19V20",
     "M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"

@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, useWindowDimension
 import Icon from './Icon';
 import { colors, fonts } from '../styles/academia';
 
-export default function AuthField({ label, icon, hint, error, onLayout, onFocus, onBlur, password, showPassword, onTogglePassword, inline = false, ...inputProps }) {
+export default function AuthField({ label, icon, hint, error, children, onLayout, onFocus, onBlur, password, showPassword, onTogglePassword, inline = false, ...inputProps }) {
   const [focused, setFocused] = useState(false);
   const gutter = useWindowDimensions().width <= 360 ? 20 : 28;
   return (
@@ -15,7 +15,7 @@ export default function AuthField({ label, icon, hint, error, onLayout, onFocus,
           {...inputProps}
           style={[s.input, inputProps.editable === false && s.readonlyText]}
           accessibilityLabel={label}
-          accessibilityHint={[hint, error].filter(Boolean).join(' ') || undefined}
+          accessibilityHint={[inputProps.accessibilityHint || hint, error].filter(Boolean).join(' ') || undefined}
           placeholderTextColor={colors.placeholder}
           secureTextEntry={password ? !showPassword : false}
           onFocus={event => { setFocused(true); onFocus?.(event); }}
@@ -24,6 +24,7 @@ export default function AuthField({ label, icon, hint, error, onLayout, onFocus,
         {password && <TouchableOpacity onPress={onTogglePassword} style={s.eye} accessibilityRole="button" accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}><Icon name={showPassword ? 'ojo-cerrado' : 'ojo'} /></TouchableOpacity>}
       </View>
       {hint && <Text style={s.hint}>{hint}</Text>}
+      {children}
       {error ? <Text style={s.error} accessibilityLiveRegion="polite">{error}</Text> : null}
     </View>
   );
