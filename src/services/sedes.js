@@ -1,6 +1,17 @@
-import { collection, doc, onSnapshot, runTransaction } from 'firebase/firestore';
+import { collection, doc, onSnapshot, runTransaction, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
-import { claveSede, crearDatosSede } from '../models/sede';
+import { claveSede, crearDatosSede, normalizarPrecioReserva } from '../models/sede';
+
+export async function cambiarEstadoSede(id, estado) {
+  if (!db || !id) throw new Error('No se puede actualizar la sede.');
+  if (!['activa', 'inactiva'].includes(estado)) throw new Error('Estado inválido.');
+  await updateDoc(doc(db, 'sedes', id), { estado });
+}
+
+export async function modificarPrecioSede(id, precio) {
+  if (!db || !id) throw new Error('No se puede actualizar la sede.');
+  await updateDoc(doc(db, 'sedes', id), { precio_reserva_vigente: normalizarPrecioReserva(precio) });
+}
 
 export function observarSedes(onData, onError) {
   if (!db) throw new Error('Firestore no está configurado.');

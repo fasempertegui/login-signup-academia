@@ -57,7 +57,7 @@ export default function AppDialog({ dialog, onClose, onAction }) {
                   <TouchableOpacity
                     key={`${dialog.id}-${index}`}
                     accessibilityRole="button"
-                    style={[s.button, action.variant === 'secondary' && s.secondary, action.variant === 'danger' && s.danger]}
+                    style={[s.button, action.variant === 'secondary' && s.secondary, action.variant === 'danger' && s.danger, action.variant === 'success' && s.success, action.variant === 'warning' && s.warning]}
                     onPress={() => onAction(action)}
                   >
                     <Text style={[s.buttonText, action.variant === 'secondary' && s.secondaryText]}>{action.label}</Text>
@@ -88,4 +88,6 @@ const s = StyleSheet.create({
   secondary: { backgroundColor: colors.white, borderColor: colors.border },
   secondaryText: { color: colors.text },
   danger: { backgroundColor: colors.error, borderColor: colors.error },
+  success: { backgroundColor: colors.success, borderColor: colors.success },
+  warning: { backgroundColor: colors.warning, borderColor: colors.warning },
 });

@@ -28,6 +28,8 @@ service cloud.firestore {
 
       allow read: if request.auth != null;
       allow create: if request.auth != null && sedeValida();
+      allow update: if request.auth != null && sedeValida()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'precio_reserva_vigente']);
     }
 
     match /usuarios/{uid} {
