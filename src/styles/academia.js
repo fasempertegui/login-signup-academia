@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
   link: { fontFamily: fonts.bold, fontSize: 14, lineHeight: 21, color: colors.primary },
   back: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, marginTop: -8, marginBottom: 17, alignSelf: 'flex-start' },
   row: { flexDirection: 'row', gap: 12 },
-  recovery: { alignSelf: 'flex-end', minHeight: 44, padding: 8, marginTop: -3, marginBottom: 24, justifyContent: 'center' },
+  recovery: { alignSelf: 'flex-start', minHeight: 44, paddingVertical: 8, marginBottom: 8, justifyContent: 'center' },
   invitation: { marginTop: 'auto', paddingTop: 22, borderTopWidth: 1, borderTopColor: colors.separator, gap: 12 },
   invitationText: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21, color: colors.muted },
 });

@@ -3,11 +3,11 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, useWindowDimension
 import Icon from './Icon';
 import { colors, fonts } from '../styles/academia';
 
-export default function AuthField({ label, icon, hint, error, children, onLayout, onFocus, onBlur, password, showPassword, onTogglePassword, inline = false, ...inputProps }) {
+export default function AuthField({ label, icon, hint, error, children, containerStyle, onLayout, onFocus, onBlur, password, showPassword, onTogglePassword, inline = false, ...inputProps }) {
   const [focused, setFocused] = useState(false);
   const gutter = useWindowDimensions().width <= 360 ? 20 : 28;
   return (
-    <View onLayout={onLayout} style={[s.field, inline ? { flex: 1 } : { marginHorizontal: gutter }]}>
+    <View onLayout={onLayout} style={[s.field, inline ? { flex: 1 } : { marginHorizontal: gutter }, containerStyle]}>
       <Text style={s.label}>{label}</Text>
       <View style={[s.control, focused && s.focused, inputProps.editable === false && s.readonly, error && s.invalid]}>
         {icon && <Icon name={icon} />}

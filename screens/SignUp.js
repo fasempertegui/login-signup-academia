@@ -254,6 +254,7 @@ export default function SignUp({ navigation }) {
         autoCapitalize="none" autoComplete="new-password" autoCorrect={false} returnKeyType="done" onSubmitEditing={handleSignUp}
       />
       <AuthButton title={isLoading ? 'Registrando…' : 'Crear cuenta'} onPress={handleSignUp} disabled={isLoading} />
+      <View style={{ height: 24 }} />
     </AuthScreen>
   );
 }

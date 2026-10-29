@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../src/config/firebaseConfig';
@@ -82,21 +82,27 @@ export default function Login({ navigation }) {
       />
       <AuthField
         label="Contraseña" icon="candado" placeholder="Tu contraseña"
+        containerStyle={loginStyles.passwordField}
         value={password} onChangeText={setPassword}
         onLayout={event => form.onFieldLayout('password', event)}
         onFocus={() => form.onFieldFocus('password')}
         password showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)}
         autoCapitalize="none" autoComplete="current-password" returnKeyType="go" onSubmitEditing={handleLogin}
       />
-      <TouchableOpacity onPress={() => navigation.navigate('RecoverPassword')} disabled={isLoading} style={[styles.recovery, { marginRight: gutter - 8 }]}>
+      <TouchableOpacity onPress={() => navigation.navigate('RecoverPassword')} disabled={isLoading} style={[styles.recovery, { marginLeft: gutter }]}>
         <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
       </TouchableOpacity>
       <AuthButton title={isLoading ? 'Ingresando…' : 'Ingresar'} onPress={handleLogin} disabled={isLoading} />
       <View style={{ height: 28 }} />
-      <View style={[styles.invitation, { marginHorizontal: gutter }]}>
+      <View style={[styles.invitation, loginStyles.invitation, { marginHorizontal: gutter }]}>
         <Text style={styles.invitationText}>¿Primera vez por acá?</Text>
         <AuthButton title="Creá tu cuenta" onPress={() => navigation.navigate('SignUp')} disabled={isLoading} secondary inset={false} />
       </View>
     </AuthScreen>
   );
 }
+
+const loginStyles = StyleSheet.create({
+  passwordField: { marginBottom: 0 },
+  invitation: { paddingBottom: 24 },
+});
