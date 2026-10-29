@@ -60,7 +60,7 @@ export default function AccountSidebar({ visible, usuario, status, section, onCl
           <Text style={s.group}>Mi actividad</Text>
           <TouchableOpacity style={s.row} onPress={() => navigate('inicio')} accessibilityRole="button" accessibilityState={{ selected: section === 'inicio' }}><Icon name="casa" color={colors.primary} /><Text style={s.rowText}>Inicio</Text></TouchableOpacity>
           <Text style={s.group}>Academia</Text>
-          <TouchableOpacity style={s.row} disabled accessibilityRole="button" accessibilityState={{ disabled: true }}><Icon name="ubicacion" color={colors.disabledText} /><Text style={[s.rowText, s.disabled]}>Sedes</Text></TouchableOpacity>
+          <TouchableOpacity style={s.row} onPress={() => navigate('sedes')} accessibilityRole="button" accessibilityState={{ selected: section === 'sedes' }}><Icon name="ubicacion" color={section === 'sedes' ? colors.primary : colors.text} /><Text style={s.rowText}>Sedes</Text></TouchableOpacity>
           <View style={s.footer}><TouchableOpacity style={s.row} onPress={() => close(onLogOut)} disabled={loggingOut} accessibilityRole="button" accessibilityState={{ disabled: loggingOut }}><Icon name="salir" color={colors.muted} /><Text style={[s.rowText, s.secondary]}>{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}</Text></TouchableOpacity></View>
         </ScrollView>
       </Animated.View>

@@ -1,6 +1,35 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /sedes_nombres/{clave} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(['sedeId'])
+        && request.resource.data.keys().hasOnly(['sedeId'])
+        && request.resource.data.sedeId is string
+        && getAfter(/databases/$(database)/documents/sedes/$(request.resource.data.sedeId)).data.nombre is string;
+    }
+
+    match /sedes/{id} {
+      function sedeValida() {
+        let datos = request.resource.data;
+        let campos = ['nombre', 'direccion', 'observaciones', 'estado', 'precio_reserva_vigente'];
+        return datos.keys().hasAll(campos)
+          && datos.keys().hasOnly(campos)
+          && datos.nombre is string && datos.nombre.size() > 0 && datos.nombre.size() <= 120
+          && datos.direccion is string && datos.direccion.size() > 0 && datos.direccion.size() <= 250
+          && datos.observaciones is string
+          && datos.estado in ['activa', 'inactiva']
+          && (datos.precio_reserva_vigente == null
+            || (datos.precio_reserva_vigente is number
+              && datos.precio_reserva_vigente > 0
+              && datos.precio_reserva_vigente <= 9999999999.99));
+      }
+
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && sedeValida();
+    }
+
     match /usuarios/{uid} {
       function esPropietario() {
         return request.auth != null && request.auth.uid == uid;

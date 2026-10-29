@@ -9,6 +9,7 @@ import useUsuario from '../src/hooks/useUsuario';
 import AccountSidebar from '../src/components/AccountSidebar';
 import Icon from '../src/components/Icon';
 import Profile from './Profile';
+import Sedes from './Sedes';
 import { colors } from '../src/styles/academia';
 import s from '../src/styles/portal';
 
@@ -16,6 +17,7 @@ export default function Home() {
   const { showDialog } = useDialog();
   const { usuario, status, retry } = useUsuario(auth.currentUser?.uid);
   const [section, setSection] = useState('inicio');
+  const [selectedSedeId, setSelectedSedeId] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const logoutInProgress = useRef(false);
@@ -24,14 +26,20 @@ export default function Home() {
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (section !== 'perfil') return false;
+      if (section === 'inicio') return false;
+      if (section === 'sedes' && selectedSedeId) {
+        setSelectedSedeId(null);
+        scrollRef.current?.scrollTo({ y: 0, animated: false });
+        return true;
+      }
       setSection('inicio');
       return true;
     });
     return () => subscription.remove();
-  }, [section]);
+  }, [section, selectedSedeId]);
 
   const navigate = destination => {
+    setSelectedSedeId(null);
     setSection(destination);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
@@ -60,10 +68,10 @@ export default function Home() {
         <TouchableOpacity style={s.iconButton} onPress={() => setMenuOpen(true)} accessibilityRole="button" accessibilityLabel="Abrir menú de cuenta" accessibilityState={{ expanded: menuOpen }}><Icon name="menu" size={24} color={colors.text} /></TouchableOpacity>
         <View style={s.brand}><Image source={require('../assets/logo.png')} style={s.logo} /><Text style={s.brandText}>Academia TM</Text></View>
       </View>
-      <ScrollView ref={scrollRef} contentContainerStyle={[s.content, { paddingHorizontal: gutter }]}>
+      <ScrollView ref={scrollRef} contentContainerStyle={[s.content, { paddingHorizontal: gutter }]} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled">
         {section === 'inicio' ? <>
           <View style={s.hero}><Text style={s.heroDate}>{fecha}</Text><Text style={s.greeting} accessibilityRole="header">{usuario?.nombre ? `Hola, ${usuario.nombre}.` : 'Hola.'}</Text></View>
-        </> : <>
+        </> : section === 'sedes' ? <Sedes selectedId={selectedSedeId} onSelect={id => { setSelectedSedeId(id); scrollRef.current?.scrollTo({ y: 0, animated: false }); }} /> : <>
           <Profile usuario={usuario} status={status} retry={retry} />
         </>}
       </ScrollView>
@@ -73,9 +81,10 @@ export default function Home() {
           <Text style={[s.navigationLabel, section === 'inicio' && s.navigationLabelSelected]}>Inicio</Text>
           {section === 'inicio' ? <View style={s.navigationIndicator} /> : null}
         </TouchableOpacity>
-        <TouchableOpacity style={s.navigationItem} disabled accessibilityRole="tab" accessibilityLabel="Sedes" accessibilityState={{ disabled: true }}>
-          <Icon name="ubicacion" size={24} color={colors.disabledText} />
-          <Text style={[s.navigationLabel, s.disabledText]}>Sedes</Text>
+        <TouchableOpacity style={s.navigationItem} onPress={() => navigate('sedes')} accessibilityRole="tab" accessibilityLabel="Sedes" accessibilityState={{ selected: section === 'sedes' }}>
+          <Icon name="ubicacion" size={24} color={section === 'sedes' ? colors.primary : colors.muted} />
+          <Text style={[s.navigationLabel, section === 'sedes' && s.navigationLabelSelected]}>Sedes</Text>
+          {section === 'sedes' ? <View style={s.navigationIndicator} /> : null}
         </TouchableOpacity>
       </View>
     </View>

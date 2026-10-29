@@ -13,7 +13,7 @@ export default function AuthField({ label, icon, hint, error, children, containe
         {icon && <Icon name={icon} />}
         <TextInput
           {...inputProps}
-          style={[s.input, inputProps.editable === false && s.readonlyText]}
+          style={[s.input, inputProps.multiline && s.multilineInput, inputProps.editable === false && s.readonlyText]}
           accessibilityLabel={label}
           accessibilityHint={[inputProps.accessibilityHint || hint, error].filter(Boolean).join(' ') || undefined}
           placeholderTextColor={colors.placeholder}
@@ -37,6 +37,7 @@ const s = StyleSheet.create({
   focused: { borderColor: colors.primary, borderLeftWidth: 3, paddingLeft: 13 },
   invalid: { borderColor: colors.error },
   input: { flex: 1, minWidth: 0, height: 46, paddingVertical: 0, fontFamily: fonts.body, fontSize: 16, color: colors.text },
+  multilineInput: { height: 104, paddingVertical: 12, textAlignVertical: 'top' },
   readonly: { backgroundColor: '#EAE6ED' }, readonlyText: { color: '#6C6275' },
   eye: { width: 44, height: 44, marginRight: -10, alignItems: 'center', justifyContent: 'center' },
   hint: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21, color: colors.muted, marginTop: 8 },
