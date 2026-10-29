@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /usuarios/{uid} {
+      function esPropietario() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+
+      function perfilValido() {
+        let datos = request.resource.data;
+        let campos = ['nombre', 'apellido', 'correo', 'celular', 'fechaNacimiento', 'nombreUsuario'];
+        return datos.keys().hasAll(campos)
+          && datos.keys().hasOnly(campos)
+          && datos.nombre is string
+          && datos.apellido is string
+          && datos.correo is string
+          && datos.celular is string
+          && datos.fechaNacimiento is string
+          && datos.nombreUsuario is string;
+      }
+
+      allow get: if esPropietario();
+      allow create, update: if esPropietario() && perfilValido();
+    }
+  }
+}

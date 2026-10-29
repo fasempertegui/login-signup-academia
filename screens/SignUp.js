@@ -9,6 +9,7 @@ import AuthScreen from '../src/components/AuthScreen';
 import AuthField from '../src/components/AuthField';
 import AuthButton from '../src/components/AuthButton';
 import PasswordChecklist from '../src/components/PasswordChecklist';
+import { guardarUsuario } from '../src/services/usuarios';
 import { styles } from '../src/styles/academia';
 import {
   formatBirthDate, generatedUsername, getBirthDateError, getConfirmPasswordError,
@@ -133,31 +134,40 @@ export default function SignUp({ navigation }) {
     try {
       const credential = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const displayName = `${firstName.trim()} ${lastName.trim()}`;
-      let isSavingName = false;
+      const datosUsuario = {
+        nombre: firstName,
+        apellido: lastName,
+        correo: credential.user.email || email.trim(),
+        celular: phone,
+        fechaNacimiento: birthDate,
+        nombreUsuario: username,
+      };
+      let isSavingProfile = false;
 
-      // El reintento conserva la cuenta creada y solo vuelve a guardar el nombre.
-      const saveName = async () => {
-        if (isSavingName) return;
-        isSavingName = true;
+      // El reintento conserva la cuenta y el UID: no vuelve a registrarla.
+      const saveProfile = async () => {
+        if (isSavingProfile) return;
+        isSavingProfile = true;
         try {
+          await guardarUsuario(credential.user.uid, datosUsuario);
           await updateProfile(credential.user, { displayName });
           showDialog({ title: 'Cuenta creada', message: 'Tu cuenta de Academia TM está lista.', variant: 'success' });
         } catch (error) {
           showDialog({
-            title: 'Falta guardar tu nombre',
-            message: 'Tu cuenta ya se creó, pero no pudimos guardar tu nombre. Podés volver a intentarlo.',
+            title: 'Falta completar tu perfil',
+            message: 'Tu cuenta ya se creó, pero no pudimos completar el guardado de tus datos. Podés volver a intentarlo.',
             variant: 'warning',
             actions: [
-              { label: 'Reintentar', onPress: saveName },
+              { label: 'Reintentar', onPress: saveProfile },
               { label: 'Cerrar', variant: 'secondary' },
             ],
           });
         } finally {
-          isSavingName = false;
+          isSavingProfile = false;
         }
       };
 
-      await saveName();
+      await saveProfile();
     } catch (error) {
       console.info('Registro rechazado:', error.code, error.message);
       let errorMessage = "Hubo un problema al registrar el usuario.";

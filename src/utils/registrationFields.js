@@ -1,4 +1,4 @@
-// Estos campos se validan para el formulario de Academia TM, pero no se persisten.
+// Validación y formato de los campos del registro de Academia TM.
 export function getNameError(value, label = 'nombre', { isEditing = false } = {}) {
   const name = value.normalize('NFC').trim();
   if (!name) return `Ingresá tu ${label}.`;
