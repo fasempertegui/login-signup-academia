@@ -28,6 +28,26 @@ export function getPhoneError(value) {
   return '';
 }
 
+export function formatBirthDate(value, previousValue = '') {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  const isDeleting = value.length < previousValue.length;
+  let formatted = digits.slice(0, 2);
+  // Al borrar, no reinsertar la barra que el usuario acaba de quitar.
+  if (digits.length > 2 || (digits.length === 2 && !isDeleting)) {
+    formatted += '/' + digits.slice(2, 4);
+  }
+  if (digits.length > 4 || (digits.length === 4 && !isDeleting)) {
+    formatted += '/' + digits.slice(4);
+  }
+  return formatted;
+}
+
+export function getBirthDateError(value) {
+  if (!value.trim()) return 'Ingresá tu fecha de nacimiento.';
+  if (!isValidBirthDate(value.trim())) return 'Revisá la fecha ingresada';
+  return '';
+}
+
 export function generatedUsername(firstName, lastName) {
   const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '');
   return normalize(lastName) + normalize(firstName).slice(0, 1);

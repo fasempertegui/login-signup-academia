@@ -8,7 +8,7 @@ import AuthScreen from '../src/components/AuthScreen';
 import AuthField from '../src/components/AuthField';
 import AuthButton from '../src/components/AuthButton';
 import { styles } from '../src/styles/academia';
-import { generatedUsername, getEmailError, getNameError, getPhoneError, isValidBirthDate } from '../src/utils/registrationFields';
+import { formatBirthDate, generatedUsername, getBirthDateError, getEmailError, getNameError, getPhoneError } from '../src/utils/registrationFields';
 
 export default function SignUp({ navigation }) {
   const headerHeight = useHeaderHeight();
@@ -22,6 +22,7 @@ export default function SignUp({ navigation }) {
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [birthDateError, setBirthDateError] = useState('');
   const username = generatedUsername(firstName, lastName);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -65,6 +66,15 @@ export default function SignUp({ navigation }) {
     setPhoneError(phone.trim() ? getPhoneError(phone) : '');
   };
 
+  const handleBirthDateChange = value => {
+    setBirthDate(previous => formatBirthDate(value, previous));
+    setBirthDateError('');
+  };
+
+  const validateBirthDateOnBlur = () => {
+    setBirthDateError(birthDate.trim() ? getBirthDateError(birthDate) : '');
+  };
+
   const handleSignUp = async () => {
     if (requestInProgress.current) return;
 
@@ -74,18 +84,15 @@ export default function SignUp({ navigation }) {
     };
     const nextEmailError = getEmailError(email);
     const nextPhoneError = getPhoneError(phone);
+    const nextBirthDateError = getBirthDateError(birthDate);
     setNameErrors(nextNameErrors);
     setEmailError(nextEmailError);
     setPhoneError(nextPhoneError);
-    if (nextNameErrors.firstName || nextNameErrors.lastName || nextEmailError || nextPhoneError) return;
+    setBirthDateError(nextBirthDateError);
+    if (nextNameErrors.firstName || nextNameErrors.lastName || nextEmailError || nextPhoneError || nextBirthDateError) return;
 
-    if (!birthDate.trim() || !password || !confirmPassword) {
+    if (!password || !confirmPassword) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
-      return;
-    }
-
-    if (!isValidBirthDate(birthDate)) {
-      Alert.alert("Error", "Ingresá una fecha de nacimiento válida en DD/MM/AAAA, no futura y de hasta 120 años.");
       return;
     }
 
@@ -203,9 +210,10 @@ export default function SignUp({ navigation }) {
       />
       <AuthField
         label="Fecha de nacimiento" icon="calendario" placeholder="DD/MM/AAAA"
-        value={birthDate} onChangeText={setBirthDate}
+        value={birthDate} onChangeText={handleBirthDateChange}
         onLayout={event => form.onFieldLayout('birthDate', event)} onFocus={() => form.onFieldFocus('birthDate')}
-        keyboardType="numbers-and-punctuation" autoComplete="birthdate-full" maxLength={10}
+        onBlur={validateBirthDateOnBlur} error={birthDateError}
+        keyboardType="number-pad" autoComplete="birthdate-full" maxLength={10}
       />
       <AuthField label="Nombre de usuario" icon="persona" placeholder="Se genera con tu nombre y apellido" value={username} editable={false} hint="Para iniciar sesión, usá tu correo electrónico." />
       <AuthField
