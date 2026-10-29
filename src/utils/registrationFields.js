@@ -8,7 +8,15 @@ export function getNameError(value, label = 'nombre', { isEditing = false } = {}
   const nameRegex = /^\p{L}[\p{L}\p{M}]*(?:(?: +|[-'’])\p{L}[\p{L}\p{M}]*)*$/u;
   // Permite seguir escribiendo «Jean-» u «O’» sin marcar un error prematuro.
   const nameToCheck = isEditing ? name.replace(/[-'’]$/, '') : name;
-  if (!nameRegex.test(nameToCheck)) return 'Usá letras, espacios, guiones o apóstrofos.';
+  if (!nameRegex.test(nameToCheck)) return 'Usá letras, espacios, guiones o apóstrofos';
+  return '';
+}
+
+export function getEmailError(value) {
+  const email = value.trim();
+  if (!email) return 'Ingresá tu correo electrónico.';
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) return 'Revisá el correo. Ejemplo: vos@ejemplo.com';
   return '';
 }
 

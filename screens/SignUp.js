@@ -8,7 +8,7 @@ import AuthScreen from '../src/components/AuthScreen';
 import AuthField from '../src/components/AuthField';
 import AuthButton from '../src/components/AuthButton';
 import { styles } from '../src/styles/academia';
-import { generatedUsername, getNameError, isValidBirthDate } from '../src/utils/registrationFields';
+import { generatedUsername, getEmailError, getNameError, isValidBirthDate } from '../src/utils/registrationFields';
 
 export default function SignUp({ navigation }) {
   const headerHeight = useHeaderHeight();
@@ -18,6 +18,7 @@ export default function SignUp({ navigation }) {
   const [lastName, setLastName] = useState('');
   const [nameErrors, setNameErrors] = useState({ firstName: '', lastName: '' });
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const username = generatedUsername(firstName, lastName);
@@ -44,6 +45,16 @@ export default function SignUp({ navigation }) {
     }));
   };
 
+  const handleEmailChange = value => {
+    setEmail(value);
+    // Ocultar el error al empezar a editar, no al recibir el foco.
+    setEmailError('');
+  };
+
+  const validateEmailOnBlur = () => {
+    setEmailError(email.trim() ? getEmailError(email) : '');
+  };
+
   const handleSignUp = async () => {
     if (requestInProgress.current) return;
 
@@ -51,17 +62,13 @@ export default function SignUp({ navigation }) {
       firstName: getNameError(firstName, 'nombre'),
       lastName: getNameError(lastName, 'apellido'),
     };
+    const nextEmailError = getEmailError(email);
     setNameErrors(nextNameErrors);
-    if (nextNameErrors.firstName || nextNameErrors.lastName) return;
+    setEmailError(nextEmailError);
+    if (nextNameErrors.firstName || nextNameErrors.lastName || nextEmailError) return;
 
-    if (!email.trim() || !phone.trim() || !birthDate.trim() || !password || !confirmPassword) {
+    if (!phone.trim() || !birthDate.trim() || !password || !confirmPassword) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      Alert.alert("Error", "Ingrese un correo válido, por ejemplo: nombre@dominio.com.");
       return;
     }
 
@@ -176,8 +183,9 @@ export default function SignUp({ navigation }) {
       </View>
       <AuthField
         label="Correo electrónico" icon="correo" placeholder="vos@ejemplo.com"
-        value={email} onChangeText={setEmail}
+        value={email} onChangeText={handleEmailChange}
         onLayout={event => form.onFieldLayout('email', event)} onFocus={() => form.onFieldFocus('email')}
+        onBlur={validateEmailOnBlur} error={emailError}
         keyboardType="email-address" autoCapitalize="none" autoComplete="email" autoCorrect={false}
       />
       <AuthField
