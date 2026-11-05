@@ -8,6 +8,7 @@ import useDialog from '../src/hooks/useDialog';
 import useUsuario from '../src/hooks/useUsuario';
 import AccountSidebar from '../src/components/AccountSidebar';
 import Icon from '../src/components/Icon';
+import HomeGreeting from '../src/components/HomeGreeting';
 import Profile from './Profile';
 import Sedes from './Sedes';
 import { colors } from '../src/styles/academia';
@@ -70,7 +71,7 @@ export default function Home() {
       </View>
       <ScrollView ref={scrollRef} contentContainerStyle={[s.content, { paddingHorizontal: gutter }]} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled">
         {section === 'inicio' ? <>
-          <View style={s.hero}><Text style={s.heroDate}>{fecha}</Text><Text style={s.greeting} accessibilityRole="header">{usuario?.nombre ? `Hola, ${usuario.nombre}.` : 'Hola.'}</Text></View>
+          <HomeGreeting usuario={usuario} status={status} retry={retry} fecha={fecha} />
         </> : section === 'sedes' ? <Sedes selectedId={selectedSedeId} onSelect={id => { setSelectedSedeId(id); scrollRef.current?.scrollTo({ y: 0, animated: false }); }} /> : <>
           <Profile usuario={usuario} status={status} retry={retry} />
         </>}

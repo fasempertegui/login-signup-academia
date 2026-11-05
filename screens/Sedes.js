@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AuthButton from '../src/components/AuthButton';
 import useSedes from '../src/hooks/useSedes';
@@ -11,14 +11,24 @@ import portal from '../src/styles/portal';
 export default function Sedes({ selectedId, onSelect }) {
   const { sedes, status, retry } = useSedes();
   const [creating, setCreating] = useState(false);
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    setSlow(false);
+    if (status !== 'loading') return;
+    const timer = setTimeout(() => setSlow(true), 8000);
+    return () => clearTimeout(timer);
+  }, [status]);
   if (creating) return <SedeForm onDone={() => setCreating(false)} />;
   const selected = status === 'ready' ? sedes.find(sede => sede.id === selectedId) : null;
   if (selected) return <SedeDetail sede={selected} />;
   return <View style={s.content}>
     <Text style={portal.title} accessibilityRole="header">Sedes</Text>
     <AuthButton title="Agregar sede" onPress={() => setCreating(true)} inset={false} />
-    {status === 'loading' ? <ActivityIndicator color={colors.primary} accessibilityLabel="Cargando sedes" /> : null}
-    {status === 'error' ? <View style={portal.state}><Text style={portal.body}>No pudimos cargar las sedes.</Text><AuthButton title="Reintentar" onPress={retry} inset={false} /></View> : null}
+    {status === 'loading' ? <View style={portal.state} accessibilityLiveRegion="polite">
+      <ActivityIndicator color={colors.primary} accessibilityLabel="Cargando sedes" />
+      <Text style={portal.muted}>{slow ? 'Las sedes están tardando más de lo habitual. Podés seguir usando la app mientras esperamos.' : 'Cargando sedes…'}</Text>
+    </View> : null}
+    {status === 'error' ? <View style={portal.state} accessibilityLiveRegion="polite"><Text style={portal.body}>No pudimos cargar las sedes.</Text><Text style={portal.muted}>Revisá tu conexión y volvé a intentar.</Text><AuthButton title="Reintentar" onPress={retry} inset={false} /></View> : null}
     {status === 'ready' ? <>
       {sedes.length ? <View style={s.list}>{sedes.map(sede => <TouchableOpacity key={sede.id} style={s.row} onPress={() => onSelect(sede.id)} accessibilityRole="button" accessibilityLabel={`${sede.nombre}, ${sede.estado === 'activa' ? 'activa' : 'inactiva'}. Ver detalle`}>
         <View style={s.summary}>

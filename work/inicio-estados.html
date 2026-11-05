@@ -1,0 +1,61 @@
+<div id="tm-preview">
+  <div class="tm-controls"><label for="tm-state">Estado del perfil</label><select id="tm-state"><option value="loading">Cargando</option><option value="slow">Demora prolongada</option><option value="error">Error al cargar</option><option value="missing">Perfil no disponible</option><option value="ready">Datos cargados</option></select></div>
+  <div class="viz-dotted-background tm-stage">
+    <section class="tm-phone" aria-label="Prototipo del inicio de Academia TM">
+      <header><i data-lucide="menu" aria-hidden="true"></i><span class="tm-brand">Academia TM</span><span class="tm-mark" aria-hidden="true">TM</span></header>
+      <main><div class="tm-hero"><div class="tm-date">Viernes, 30 de octubre</div><div id="tm-content" aria-live="polite"></div></div></main>
+      <footer><div class="tm-active"><i data-lucide="house" aria-hidden="true"></i><span>Inicio</span><b></b></div><div><i data-lucide="map-pin" aria-hidden="true"></i><span>Sedes</span></div></footer>
+    </section>
+  </div>
+</div>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anybody:wght@600;650&family=Atkinson+Hyperlegible+Next:wght@400;500;600&display=swap');
+#tm-preview {font-family:'Atkinson Hyperlegible Next',sans-serif;color:#23192A;color-scheme:light}
+#tm-preview *{box-sizing:border-box}
+#tm-preview .tm-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:0 0 18px;padding-right:90px}
+#tm-preview select{font:inherit;color:#23192A;background:#fff;border:1px solid #8A7D95;border-radius:10px;padding:10px;max-width:100%;min-height:44px}
+#tm-preview .tm-stage{padding:24px 12px;display:flex;justify-content:center}
+#tm-preview .tm-phone{width:100%;max-width:390px;min-height:520px;background:#F8F6F0;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 30px #2913341f}
+#tm-preview header{display:flex;gap:12px;align-items:center;min-height:76px;padding:16px 24px;border-bottom:1px solid #DED7E3}
+#tm-preview .tm-brand{font-family:Anybody,sans-serif;font-weight:600;flex:1}
+#tm-preview .tm-mark{color:#4B176D;font-family:Anybody,sans-serif;font-weight:600}
+#tm-preview main{padding:28px 24px;flex:1}
+#tm-preview .tm-hero{background:#4B176D;border-radius:20px;padding:24px;color:#fff;min-height:166px}
+#tm-preview .tm-date{color:#DDD3E5;font-size:14px;margin-bottom:14px}
+#tm-preview h2{font-family:Anybody,sans-serif;font-size:28px;line-height:1.2;margin:0 0 14px;font-weight:600;letter-spacing:-.7px}
+#tm-preview p{font-size:16px;line-height:1.5;margin:0;color:#DDD3E5}
+#tm-preview .tm-status{display:flex;gap:10px;align-items:center}
+#tm-preview .tm-spinner{width:18px;height:18px;border:2px solid #ffffff40;border-top-color:#fff;border-radius:50%;flex-shrink:0;animation:tm-spin 1s linear infinite}
+#tm-preview button{font:inherit;font-weight:600;background:#fff;color:#4B176D;border:0;border-radius:10px;padding:12px 16px;min-height:48px;margin-top:18px;width:100%}
+#tm-preview footer{display:flex;justify-content:space-around;padding:14px 24px 18px;border-top:1px solid #DED7E3;color:#6B6072}
+#tm-preview footer>div{display:flex;flex-direction:column;gap:5px;align-items:center;font-size:14px;min-width:64px}
+#tm-preview footer .tm-active{color:#4B176D}
+#tm-preview footer b{width:18px;height:3px;background:#B6D532;border-radius:2px}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#tm-preview .tm-spinner{animation:none}}
+</style>
+<script>
+(()=>{
+const root=document.getElementById('tm-preview');
+const picker=root.querySelector('#tm-state');
+const content=root.querySelector('#tm-content');
+let timer;
+const allowed=['loading','slow','error','missing','ready'];
+function render(value,save=false){
+clearTimeout(timer);
+const state=allowed.includes(value)?value:'loading';picker.value=state;
+const views={
+loading:'<h2>Hola.</h2><div class="tm-status"><span class="tm-spinner" aria-hidden="true"></span><p>Cargando tus datos…</p></div>',
+slow:'<h2>Hola.</h2><div class="tm-status"><span class="tm-spinner" aria-hidden="true"></span><p>Tus datos están tardando más de lo habitual.</p></div><p style="margin-top:12px">Podés seguir usando la app mientras esperamos.</p>',
+error:'<h2>Hola.</h2><p>No pudimos cargar tus datos. Revisá tu conexión y volvé a intentar.</p><button type="button" class="cursor-interaction">Reintentar</button>',
+missing:'<h2>Hola.</h2><p>Tu perfil todavía no está disponible.</p><button type="button" class="cursor-interaction">Volver a consultar</button>',
+ready:'<h2>Hola, Fabri.</h2>'};
+content.innerHTML=views[state];
+const retry=content.querySelector('button');if(retry)retry.onclick=()=>{render('loading',true);timer=setTimeout(()=>render('ready',true),1500)};
+if(save&&window.openai?.setWidgetState)window.openai.setWidgetState({modelContent:{estado:state},privateContent:{estado:state}}).catch(()=>{});
+}
+picker.onchange=()=>render(picker.value,true);
+render(window.openai?.widgetState?.privateContent?.estado||'loading');
+window.addEventListener('openai:set_globals',e=>{const state=e.detail?.globals?.widgetState?.privateContent?.estado;if(state)render(state)});
+})();
+</script>

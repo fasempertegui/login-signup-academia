@@ -39,7 +39,6 @@ export default function Login({ navigation }) {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      showDialog({ title: 'Sesión iniciada', message: 'Ya ingresaste a tu cuenta de Academia TM.', variant: 'success' });
       // El observador de Firebase cambia la pantalla al detectar la sesión.
     } catch (error) {
       console.info('Inicio de sesión rechazado:', error.code, error.message);
